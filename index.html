@@ -3,14 +3,410 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>測試成功</title>
+    <title>MIYU覓語美學 | 數位名片</title>
+    <!-- 引入 Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 設定 Tailwind 配置和基本樣式 -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif; /* 使用 Inter 或系統預設字體 */
+            margin: 0;
+            background-color: #FDFBF7; /* 奶白色背景 */
+            min-height: 100vh;
+        }
+        /* 確保元素平滑淡入 */
+        .fade-in {
+            opacity: 0;
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* 連結按鈕的漸變背景和陰影 */
+        .insta-grad {
+            background: linear-gradient(45deg, #f09433, #dc2743, #bc1888);
+        }
+        /* Line 綠色 */
+        .line-green {
+            background-color: #06C755;
+        }
+    </style>
 </head>
-<body style="background-color: #f0f0f0; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0;">
-    <div style="text-align: center; padding: 30px; border: 3px solid green; border-radius: 10px; background-color: white;">
-        <h1 style="color: green;">網站測試成功！</h1>
-        <p>如果看到這個頁面，表示 GitHub Pages 已經完全修復。</p>
-        <p>請重新貼上完整網頁程式碼。</p>
-    </div>
+<body>
+
+<div id="app" class="max-w-md mx-auto fade-in pb-20">
+    
+    <!-- JavaScript for Icon Helpers -->
+    <script>
+        // Lucide Icons SVG Paths (Used by JS functions below)
+        const icons = {
+            MapPin: '<path d="M20 10c0 6-8 15-8 15s-8-9-8-15a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/>',
+            Instagram: '<rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>',
+            MessageCircle: '<path d="M7.9 20A9 9 0 0 1 4 16.1L2 12A8 8 0 0 0 12 20a9 9 0 0 0 9-9c0-.64-.13-1.25-.37-1.83"/><path d="M10 10v.01"/><path d="M14 10v.01"/><path d="M10 14v.01"/><path d="M14 14v.01"/>',
+            ChevronRight: '<path d="m9 18 6-6-6-6"/>',
+            AlertCircle: '<circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/>',
+            Navigation: '<polygon points="3 11 22 2 13 21 11 13 3 11"/>',
+        };
+
+        /**
+         * 產生 SVG 圖標的 HTML 字串
+         * @param {string} name - 圖標名稱 (如: 'MapPin')
+         * @param {number} size - 尺寸 (預設 24)
+         * @param {string} className - Tailwind CSS 類別
+         * @returns {string} - 完整的 SVG HTML 標籤
+         */
+        function getIcon(name, size = 24, className = "") {
+            const path = icons[name] || '';
+            return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${className}">${path}</svg>`;
+        }
+        
+        // MIYU Logo SVG
+        const miyuLogoSvg = `
+            <svg width="80" height="80" viewBox="0 0 100 100" class="mx-auto mb-4">
+                <defs>
+                    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#D4C4B7" />
+                        <stop offset="100%" stop-color="#8B7E74" />
+                    </linearGradient>
+                </defs>
+                <path d="M25 80 V 30 L 50 60 L 75 30 V 60" stroke="url(#goldGradient)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M60 55 L 75 80 L 90 55" stroke="#A89F91" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.8"/>
+                <path d="M75 80 V 95" stroke="#A89F91" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.8"/>
+            </svg>
+        `;
+
+        // Price Item Helper
+        function renderPriceItem(name, price, note = '') {
+            const noteHtml = note ? `<span class="text-[#9CA3AF] text-sm mt-1">${note}</span>` : '';
+            return `
+                <div class="flex justify-between items-baseline py-3 border-b border-[#EBE5DE] last:border-0">
+                    <div class="flex flex-col">
+                        <span class="text-[#5e5650] text-lg font-medium">${name}</span>
+                        ${noteHtml}
+                    </div>
+                    <span class="text-[#8B7E74] font-semibold text-lg ml-4 whitespace-nowrap">${price}</span>
+                </div>
+            `;
+        }
+
+        // Price Category Helper
+        function renderPriceCategory(title, contentHtml) {
+            return `
+                <div class="mb-8 bg-white p-6 rounded-2xl shadow-sm border border-[#F5F0EB]">
+                    <h4 class="text-center text-[#8B7E74] font-medium text-lg mb-6 tracking-widest border-b pb-2 mx-4 border-[#EBE5DE]">
+                        ${title}
+                    </h4>
+                    ${contentHtml}
+                </div>
+            `;
+        }
+
+        // External Link Button Helper
+        function renderLinkButton(href, iconName, mainText, subText, colorClass) {
+            return `
+                <a href="${href}" target="_blank" rel="noopener noreferrer"
+                   class="group block w-full bg-white border border-[#EBE5DE] rounded-xl p-4 shadow-sm mb-4 active:scale-95 transition-all duration-200 hover:shadow-md hover:border-[#D4C4B7]">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div class="p-3 rounded-full ${colorClass} bg-opacity-10">
+                                ${getIcon(iconName, 24, colorClass.replace('bg-', 'text-'))}
+                            </div>
+                            <div class="text-left">
+                                <p class="text-[#5e5650] font-medium text-lg">${mainText}</p>
+                                <p class="text-[#9CA3AF] text-sm">${subText}</p>
+                            </div>
+                        </div>
+                        ${getIcon('ChevronRight', 24, 'text-[#D4C4B7] group-hover:translate-x-1 transition-transform')}
+                    </div>
+                </a>
+            `;
+        }
+
+        // --- Tab Content Data ---
+        
+        const priceContent = {
+            eyebrow: renderPriceCategory("霧眉 / 眉部護理", `
+                ${renderPriceItem("粉霧眉", "$5500")}
+                ${renderPriceItem("補色", "$1800", "一年半內")}
+                ${renderPriceItem("無創淡色", "$1300")}
+                ${renderPriceItem("淡色三堂", "$3500")}
+            `),
+            nail: `
+                ${renderPriceCategory("美甲造型", `
+                    ${renderPriceItem("單色", "$900")}
+                    ${renderPriceItem("貓眼", "$1100")}
+                    ${renderPriceItem("鏡面", "$1200")}
+                    ${renderPriceItem("法式", "$1400")}
+                    ${renderPriceItem("造型款式", "$1200 up")}
+                `)}
+                ${renderPriceCategory("手足保養 / 卷甲", `
+                    ${renderPriceItem("手部基礎保養", "$499")}
+                    ${renderPriceItem("手部進階保養", "$999")}
+                    ${renderPriceItem("足部基礎保養", "$799")}
+                    ${renderPriceItem("足部進階保養", "$1299")}
+                    ${renderPriceItem("卷甲矯正", "$200 / 指")}
+                `)}
+                ${renderPriceCategory("卸甲服務", `
+                    ${renderPriceItem("本店單卸", "$400")}
+                    ${renderPriceItem("他店單卸", "$500")}
+                    ${renderPriceItem("本店卸續", "$200")}
+                    ${renderPriceItem("他店卸續", "$300")}
+                    ${renderPriceItem("卸指甲油", "$50")}
+                `)}
+            `,
+            removal: `
+                ${renderPriceCategory("唇色矯正", `
+                    ${renderPriceItem("體驗價", "$1999")}
+                    ${renderPriceItem("唇色矯正單次", "$2500")}
+                    ${renderPriceItem("唇色矯正三堂", "$6500")}
+                `)}
+                ${renderPriceCategory("乳暈淡化", `
+                    ${renderPriceItem("體驗價", "$2999")}
+                    ${renderPriceItem("乳暈淡化單次", "$4000")}
+                    ${renderPriceItem("乳暈淡化三堂", "$11000")}
+                `)}
+            `
+        };
+
+        const serviceContent = `
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-[#F5F0EB] text-center">
+                <h3 class="text-[#8B7E74] text-xl font-light mb-8 tracking-widest">精選服務</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    ${['粉霧眉', '無創淡色', '手足美甲', '卷甲矯正', '唇色矯正', '乳暈淡化'].map(item => `
+                        <div class="p-4 bg-[#F9F7F5] rounded-xl text-[#5e5650] text-lg font-medium tracking-wide hover:bg-[#F0EBE5] transition-colors">
+                            ${item}
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+
+        const policyContent = `
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-[#F5F0EB]">
+                <div class="flex items-center justify-center mb-6 text-[#8B7E74]">
+                    ${getIcon('AlertCircle', 32)}
+                    <h3 class="text-xl font-medium ml-3 tracking-widest">預約須知</h3>
+                </div>
+                
+                <ul class="space-y-6 text-[#5e5650] leading-relaxed text-sm text-justify list-none pl-0">
+                    <li class="flex items-start">
+                        <span class="text-[#D4C4B7] font-bold mr-3 mt-0.5">01.</span>
+                        <span>新客首次預約皆收定金，當天消費折抵扣除。24小時內匯款完成才算預約完成，取消皆不退定金。</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-[#D4C4B7] font-bold mr-3 mt-0.5">02.</span>
+                        <span>舊客取消預約，下次預約則會收取定金。</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-[#D4C4B7] font-bold mr-3 mt-0.5">03.</span>
+                        <span>預約時間保留15分鐘，超過時間者視情況減少項目或改期，聯繫不到者直接取消，每次預約皆收取定金。</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-[#D4C4B7] font-bold mr-3 mt-0.5">04.</span>
+                        <span>因環境關係，不可攜帶幼童、寵物。攜伴需先告知，以不攜伴為佳。</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-[#D4C4B7] font-bold mr-3 mt-0.5">05.</span>
+                        <span>美甲造型款式無法做到一模一樣，完美主義者請三思後再進行預約。</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-[#D4C4B7] font-bold mr-3 mt-0.5">06.</span>
+                        <span>本店付款方式支援：<span class="font-bold border-b border-[#D4C4B7]">現金、轉帳</span>。</span>
+                    </li>
+                </ul>
+            </div>
+        `;
+
+        const addressContent = `
+            <div class="space-y-6">
+                <!-- Address Card (Clickable) -->
+                <a href="https://maps.app.goo.gl/tAnMDcd3nLufcGz87?g_st=ipc" target="_blank" rel="noopener noreferrer"
+                   class="block w-full bg-white p-6 rounded-2xl shadow-sm border border-[#F5F0EB] text-center mb-6 group hover:border-[#D4C4B7] hover:shadow-md transition-all active:scale-95 cursor-pointer relative overflow-hidden">
+                    
+                    <div class="absolute top-0 right-0 w-24 h-24 bg-[#FDFBF7] rounded-bl-full -mr-4 -mt-4 opacity-50 transition-transform group-hover:scale-110"></div>
+    
+                    <div class="bg-[#F9F7F5] w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 text-[#8B7E74] group-hover:bg-[#EBE5DE] group-hover:text-[#5e5650] transition-colors relative z-10">
+                        ${getIcon('MapPin', 28)}
+                    </div>
+                    <p class="text-[#5e5650] font-medium text-xl mb-2 relative z-10">MIYU 覓語美學</p>
+                    <p class="text-[#9CA3AF] mb-4 text-sm relative z-10">台中市西區福龍街12號2樓之2</p>
+                    
+                    <div class="inline-flex items-center justify-center px-4 py-2 bg-[#F9F7F5] rounded-full text-[#8B7E74] text-sm font-medium group-hover:bg-[#8B7E74] group-hover:text-white transition-colors">
+                        ${getIcon('Navigation', 14, 'mr-2')}
+                        點擊開啟 Google 導航
+                    </div>
+                </a>
+    
+                <!-- Link Buttons -->
+                ${renderLinkButton(
+                    "https://lin.ee/JH91UP1", 
+                    "MessageCircle", 
+                    "Line 官方帳號", 
+                    "ID: @273jnapy (點擊預約)", 
+                    "line-green text-white" 
+                )}
+    
+                ${renderLinkButton(
+                    "https://www.instagram.com/miyu_.art?igsh=MXNmZ3NqeWk1ZWsxZw%3D%3D&utm_source=qr", 
+                    "Instagram", 
+                    "作品集", 
+                    "最新動態 / 更多作品", 
+                    "insta-grad text-white" 
+                )}
+            </div>
+        `;
+        
+        // --- Main App Logic (Pure JS DOM Manipulation) ---
+        
+        const tabs = [
+            { id: 'services', label: '服務項目', content: serviceContent },
+            { id: 'prices', label: '價目表', content: priceContent },
+            { id: 'policy', label: '預約須知', content: policyContent },
+            { id: 'address', label: '地址/連結', content: addressContent },
+        ];
+        
+        const priceTabs = [
+            { id: 'eyebrow', label: '霧眉' },
+            { id: 'nail', label: '美甲' },
+            { id: 'removal', label: '除色還原' },
+        ];
+        
+        let activeTab = 'services';
+        let activePriceTab = 'eyebrow';
+
+        /** 渲染主內容區塊 */
+        function renderContent() {
+            const mainContentEl = document.getElementById('main-content');
+            if (!mainContentEl) return;
+            
+            let html = '';
+            const currentTab = tabs.find(t => t.id === activeTab);
+            
+            if (currentTab) {
+                if (activeTab === 'prices') {
+                    // 價格 tab 需要渲染副標籤和副內容
+                    const priceNavHtml = priceTabs.map(pt => `
+                        <button id="price-tab-${pt.id}" data-tab="${pt.id}" 
+                                class="flex-1 py-2 rounded-full text-sm font-medium transition-all duration-300 
+                                ${activePriceTab === pt.id ? 'bg-white text-[#8B7E74] shadow-sm' : 'text-[#9CA3AF] hover:text-[#8B7E74]'}">
+                            ${pt.label}
+                        </button>
+                    `).join('');
+                    
+                    html = `
+                        <div>
+                            <div id="price-nav" class="flex justify-center space-x-2 mb-8 bg-[#F5F0EB] p-1.5 rounded-full">
+                                ${priceNavHtml}
+                            </div>
+                            <div id="price-content" class="transition-opacity duration-300">
+                                ${priceContent[activePriceTab]}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    html = currentTab.content;
+                }
+            }
+            
+            // 替換內容並觸發淡入效果
+            mainContentEl.innerHTML = html;
+            mainContentEl.classList.add('animate-fadeIn'); // 重新加入淡入 class
+            
+            // 重新綁定價格副標籤點擊事件 (因為內容是新渲染的)
+            if (activeTab === 'prices') {
+                document.getElementById('price-nav').addEventListener('click', handlePriceTabClick);
+            }
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' }); // 切換時滾動到頂部
+        }
+        
+        /** 處理價格副標籤點擊事件 */
+        function handlePriceTabClick(e) {
+            const button = e.target.closest('button[data-tab]');
+            if (button) {
+                const newPriceTab = button.getAttribute('data-tab');
+                if (newPriceTab !== activePriceTab) {
+                    activePriceTab = newPriceTab;
+                    renderContent(); // 重新渲染整個內容區塊
+                }
+            }
+        }
+
+        /** 渲染主導航欄 */
+        function renderNavbar() {
+            const navEl = document.getElementById('main-nav');
+            if (!navEl) return;
+            
+            navEl.innerHTML = tabs.map(tab => `
+                <button id="main-tab-${tab.id}" data-tab="${tab.id}"
+                        class="flex-1 py-4 text-sm font-medium transition-colors relative 
+                        ${activeTab === tab.id ? 'text-[#8B7E74]' : 'text-[#C5BCB4] hover:text-[#A89F91]'}">
+                    ${tab.label}
+                    ${activeTab === tab.id ? '<span class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-0.5 bg-[#8B7E74] rounded-full"></span>' : ''}
+                </button>
+            `).join('');
+            
+            // 綁定主標籤點擊事件
+            navEl.addEventListener('click', (e) => {
+                const button = e.target.closest('button[data-tab]');
+                if (button) {
+                    const newTab = button.getAttribute('data-tab');
+                    if (newTab !== activeTab) {
+                        activeTab = newTab;
+                        renderNavbar(); // 刷新導航欄狀態
+                        renderContent(); // 刷新內容區塊
+                    }
+                }
+            });
+        }
+
+        /** 啟動應用程式 */
+        function initializeApp() {
+            const appContainer = document.getElementById('app');
+            if (!appContainer) return;
+
+            appContainer.innerHTML = `
+                <!-- Header Section -->
+                <header class="pt-12 pb-8 px-6 text-center bg-gradient-to-b from-[#FDFBF7] to-[#F7F3EF]">
+                    ${miyuLogoSvg}
+                    <h1 class="text-3xl font-light tracking-[0.2em] text-[#4A4A4A] mb-2">MIYU</h1>
+                    <h2 class="text-lg text-[#8B7E74] tracking-[0.4em] font-light">覓語美學</h2>
+                </header>
+
+                <!-- Sticky Navigation -->
+                <nav class="sticky top-0 z-50 bg-[#FDFBF7]/95 backdrop-blur-sm border-b border-[#EBE5DE] shadow-sm">
+                    <div id="main-nav" class="flex justify-around items-center max-w-md mx-auto">
+                        <!-- Navigation will be rendered here by JS -->
+                    </div>
+                </nav>
+
+                <!-- Main Content Container -->
+                <main id="main-content" class="max-w-md mx-auto px-5 pt-8">
+                    <!-- Content will be rendered here by JS -->
+                </main>
+
+                <!-- Footer -->
+                <footer class="mt-12 text-center pb-8">
+                    <p class="text-[#D4C4B7] text-xs font-light tracking-widest">
+                        © MIYU AESTHETICS
+                    </p>
+                </footer>
+            `;
+            
+            renderNavbar();
+            renderContent();
+        }
+
+        // 確保在 DOM 載入後運行初始化
+        window.addEventListener('load', initializeApp);
+
+    </script>
+</div>
+
 </body>
 </html>
+
 
