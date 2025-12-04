@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIYU覓語美學 | 數位名片</title>
+    <!-- 引入 Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 React, ReactDOM, and Babel -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- 引入 Lucide Icons (用於圖標) -->
+    <script type="module">
+        // Lucide icons are often used via npm. For a single-file solution, 
+        // we'll rely on the Babel script handling the JSX import structure,
+        // or the environment providing necessary globals.
+        // If icons fail, they must be manually included or replaced with SVGs/Emojis in a true standalone environment.
+        // Assuming the environment supports the basic React structure.
+    </script>
+    
+    <!-- 設定 Tailwind 配置，使用 Inter 字體 -->
+    <style>
+        :root {
+            --font-inter: 'Inter', sans-serif;
+        }
+        body {
+            font-family: var(--font-inter);
+            margin: 0;
+            background-color: #FDFBF7; /* 奶白色背景 */
+        }
+        .animate-fadeIn {
+            animation: fadeIn 0.5s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* 確保底部有足夠的空間（底部邊距已在主容器中設置為 pb-32）*/
+    </style>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'miyubg': '#FDFBF7',
+                        'miyulight': '#EBE5DE',
+                        'miyudark': '#8B7E74',
+                        'miyuaccent': '#D4C4B7',
+                        'miyuheader': '#F7F3EF',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // 為了讓 Lucide 圖標能在單一檔案環境中運行，我們將手動定義它們的 SVG 結構。
+        // 這是確保在沒有 npm 環境下圖標能正確顯示的必要步驟。
+
+        const { useState, useEffect } = React;
+        
+        // --- Lucide Icons (Simplified SVG replacement for essential icons) ---
+        const MapPin = (props) => (
+            <svg {...props} xmlns="http://www.w3.org/2000/svg" width={props.size || 24} height={props.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 15-8 15s-8-9-8-15a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        );
+        const Instagram = (props) => (
+            <svg {...props} xmlns="http://www.w3.org/2000/svg" width={props.size || 24} height={props.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
+        );
+        const MessageCircle = (props) => (
+            <svg {...props} xmlns="http://www.w3.org/2000/svg" width={props.size || 24} height={props.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7.9 20A9 9 0 0 1 4 16.1L2 12A8 8 0 0 0 12 20a9 9 0 0 0 9-9c0-.64-.13-1.25-.37-1.83"/><path d="M10 10v.01"/><path d="M14 10v.01"/><path d="M10 14v.01"/><path d="M14 14v.01"/></svg>
+        );
+        const ChevronRight = (props) => (
+            <svg {...props} xmlns="http://www.w3.org/2000/svg" width={props.size || 24} height={props.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+        );
+        const AlertCircle = (props) => (
+            <svg {...props} xmlns="http://www.w3.org/2000/svg" width={props.size || 24} height={props.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+        );
+        const Navigation = (props) => (
+            <svg {...props} xmlns="http://www.w3.org/2000/svg" width={props.size || 24} height={props.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+        );
+        // --- Components ---
+
+        // Custom Logo Component (M & Y Intertwined)
+        const MiyuLogo = () => (
+          <svg width="80" height="80" viewBox="0 0 100 100" className="mx-auto mb-4">
+            <defs>
+              <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#D4C4B7" />
+                <stop offset="100%" stopColor="#8B7E74" />
+              </linearGradient>
+            </defs>
+            {/* M Shape */}
+            <path
+              d="M25 80 V 30 L 50 60 L 75 30 V 60"
+              stroke="url(#goldGradient)"
+              strokeWidth="3"
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            {/* Y Shape - Positioned lower right overlapping */}
+            <path
+              d="M60 55 L 75 80 L 90 55"
+              stroke="#A89F91"
+              strokeWidth="3"
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              opacity="0.8"
+            />
+            <path
+              d="M75 80 V 95"
+              stroke="#A89F91"
+              strokeWidth="3"
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              opacity="0.8"
+            />
+          </svg>
+        );
+
+        const PriceItem = ({ name, price, note }) => (
+          <div className="flex justify-between items-baseline py-3 border-b border-[#EBE5DE] last:border-0">
+            <div className="flex flex-col">
+              <span className="text-[#5e5650] text-lg font-medium">{name}</span>
+              {note && <span className="text-[#9CA3AF] text-sm mt-1">{note}</span>}
+            </div>
+            <span className="text-[#8B7E74] font-semibold text-lg ml-4 whitespace-nowrap">{price}</span>
+          </div>
+        );
+
+        const PriceCategory = ({ title, children }) => (
+          <div className="mb-8 bg-white p-6 rounded-2xl shadow-sm border border-[#F5F0EB]">
+            <h4 className="text-center text-[#8B7E74] font-medium text-lg mb-6 tracking-widest border-b pb-2 mx-4 border-[#EBE5DE]">
+              {title}
+            </h4>
+            {children}
+          </div>
+        );
+
+        const ExternalLinkButton = ({ href, icon: Icon, mainText, subText, colorClass }) => (
+          <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group block w-full bg-white border border-[#EBE5DE] rounded-xl p-4 shadow-sm mb-4 active:scale-95 transition-all duration-200 hover:shadow-md hover:border-[#D4C4B7]"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className={`p-3 rounded-full ${colorClass} bg-opacity-10`}>
+                  <Icon size={24} className={colorClass.replace('bg-', 'text-')} />
+                </div>
+                <div className="text-left">
+                  <p className="text-[#5e5650] font-medium text-lg">{mainText}</p>
+                  <p className="text-[#9CA3AF] text-sm">{subText}</p>
+                </div>
+              </div>
+              <ChevronRight className="text-[#D4C4B7] group-hover:translate-x-1 transition-transform" />
+            </div>
+          </a>
+        );
+
+        // New clickable Address Card Component
+        const AddressCardLink = () => (
+          <a
+            href="https://maps.app.goo.gl/tAnMDcd3nLufcGz87?g_st=ipc"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block w-full bg-white p-6 rounded-2xl shadow-sm border border-[#F5F0EB] text-center mb-6 group hover:border-[#D4C4B7] hover:shadow-md transition-all active:scale-95 cursor-pointer relative overflow-hidden"
+          >
+            {/* Decorative background circle */}
+            <div className="absolute top-0 right-0 w-24 h-24 bg-[#FDFBF7] rounded-bl-full -mr-4 -mt-4 opacity-50 transition-transform group-hover:scale-110"></div>
+
+            <div className="bg-[#F9F7F5] w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 text-[#8B7E74] group-hover:bg-[#EBE5DE] group-hover:text-[#5e5650] transition-colors relative z-10">
+              <MapPin size={28} />
+            </div>
+            <p className="text-[#5e5650] font-medium text-xl mb-2 relative z-10">MIYU 覓語美學</p>
+            <p className="text-[#9CA3AF] mb-4 text-sm relative z-10">台中市西區福龍街12號2樓之2</p>
+            
+            <div className="inline-flex items-center justify-center px-4 py-2 bg-[#F9F7F5] rounded-full text-[#8B7E74] text-sm font-medium group-hover:bg-[#8B7E74] group-hover:text-white transition-colors">
+              <Navigation size={14} className="mr-2" />
+              點擊開啟 Google 導航
+            </div>
+          </a>
+        );
+
+        const App = () => {
+          const [activeTab, setActiveTab] = useState('services');
+          const [activePriceTab, setActivePriceTab] = useState('eyebrow');
+
+          // Scroll to top when main tab changes
+          useEffect(() => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }, [activeTab]);
+
+          const tabs = [
+            { id: 'services', label: '服務項目' },
+            { id: 'prices', label: '價目表' },
+            { id: 'policy', label: '預約須知' },
+            { id: 'address', label: '地址/連結' },
+          ];
+
+          const priceTabs = [
+            { id: 'eyebrow', label: '霧眉' },
+            { id: 'nail', label: '美甲' },
+            { id: 'removal', label: '除色還原' },
+          ];
+
+          return (
+            <div className="min-h-screen bg-[#FDFBF7] font-sans selection:bg-[#D4C4B7] selection:text-white pb-32">
+              {/* Header Section */}
+              <header className="pt-12 pb-8 px-6 text-center bg-gradient-to-b from-[#FDFBF7] to-[#F7F3EF]">
+                <MiyuLogo />
+                <h1 className="text-3xl font-light tracking-[0.2em] text-[#4A4A4A] mb-2">
+                  MIYU
+                </h1>
+                <h2 className="text-lg text-[#8B7E74] tracking-[0.4em] font-light">
+                  覓語美學
+                </h2>
+              </header>
+
+              {/* Sticky Navigation */}
+              <nav className="sticky top-0 z-50 bg-[#FDFBF7]/95 backdrop-blur-sm border-b border-[#EBE5DE] shadow-sm">
+                <div className="flex justify-around items-center max-w-md mx-auto">
+                  {tabs.map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`flex-1 py-4 text-sm font-medium transition-colors relative ${
+                        activeTab === tab.id
+                          ? 'text-[#8B7E74]'
+                          : 'text-[#C5BCB4] hover:text-[#A89F91]'
+                      }`}
+                    >
+                      {tab.label}
+                      {activeTab === tab.id && (
+                        <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-0.5 bg-[#8B7E74] rounded-full" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </nav>
+
+              {/* Main Content Container */}
+              <main className="max-w-md mx-auto px-5 pt-8 animate-fadeIn">
+                
+                {/* === TAB: SERVICES === */}
+                {activeTab === 'services' && (
+                  <div className="space-y-4">
+                    <div className="bg-white p-8 rounded-2xl shadow-sm border border-[#F5F0EB] text-center">
+                      <h3 className="text-[#8B7E74] text-xl font-light mb-8 tracking-widest">
+                        精選服務
+                      </h3>
+                      <div className="grid grid-cols-2 gap-4">
+                        {[
+                          '粉霧眉', '無創淡色',
+                          '手足美甲', '卷甲矯正',
+                          '唇色矯正', '乳暈淡化'
+                        ].map((item, idx) => (
+                          <div key={idx} className="p-4 bg-[#F9F7F5] rounded-xl text-[#5e5650] text-lg font-medium tracking-wide hover:bg-[#F0EBE5] transition-colors">
+                            {item}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* === TAB: PRICES === */}
+                {activeTab === 'prices' && (
+                  <div>
+                    {/* Price Sub-tabs */}
+                    <div className="flex justify-center space-x-2 mb-8 bg-[#F5F0EB] p-1.5 rounded-full">
+                      {priceTabs.map((pt) => (
+                        <button
+                          key={pt.id}
+                          onClick={() => setActivePriceTab(pt.id)}
+                          className={`flex-1 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+                            activePriceTab === pt.id
+                              ? 'bg-white text-[#8B7E74] shadow-sm'
+                              : 'text-[#9CA3AF] hover:text-[#8B7E74]'
+                          }`}
+                        >
+                          {pt.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Price Content */}
+                    <div className="transition-opacity duration-300">
+                      
+                      {activePriceTab === 'eyebrow' && (
+                        <PriceCategory title="霧眉 / 眉部護理">
+                          <PriceItem name="粉霧眉" price="$5500" />
+                          <PriceItem name="補色" price="$1800" note="一年半內" />
+                          <PriceItem name="無創淡色" price="$1300" />
+                          <PriceItem name="淡色三堂" price="$3500" />
+                        </PriceCategory>
+                      )}
+
+                      {activePriceTab === 'nail' && (
+                        <div className="space-y-6">
+                          <PriceCategory title="美甲造型">
+                            <PriceItem name="單色" price="$900" />
+                            <PriceItem name="貓眼" price="$1100" />
+                            <PriceItem name="鏡面" price="$1200" />
+                            <PriceItem name="法式" price="$1400" />
+                            <PriceItem name="造型款式" price="$1200 up" />
+                          </PriceCategory>
+
+                          <PriceCategory title="手足保養 / 卷甲">
+                            <PriceItem name="手部基礎保養" price="$499" />
+                            <PriceItem name="手部進階保養" price="$999" />
+                            <PriceItem name="足部基礎保養" price="$799" />
+                            <PriceItem name="足部進階保養" price="$1299" />
+                            <PriceItem name="卷甲矯正" price="$200 / 指" />
+                          </PriceCategory>
+
+                          <PriceCategory title="卸甲服務">
+                            <PriceItem name="本店單卸" price="$400" />
+                            <PriceItem name="他店單卸" price="$500" />
+                            <PriceItem name="本店卸續" price="$200" />
+                            <PriceItem name="他店卸續" price="$300" />
+                            <PriceItem name="卸指甲油" price="$50" />
+                          </PriceCategory>
+                        </div>
+                      )}
+
+                      {activePriceTab === 'removal' && (
+                        <div className="space-y-6">
+                          <PriceCategory title="唇色矯正">
+                            <PriceItem name="體驗價" price="$1999" />
+                            <PriceItem name="唇色矯正單次" price="$2500" />
+                            <PriceItem name="唇色矯正三堂" price="$6500" />
+                          </PriceCategory>
+
+                          <PriceCategory title="乳暈淡化">
+                            <PriceItem name="體驗價" price="$2999" />
+                            <PriceItem name="乳暈淡化單次" price="$4000" />
+                            <PriceItem name="乳暈淡化三堂" price="$11000" />
+                          </PriceCategory>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* === TAB: POLICY === */}
+                {activeTab === 'policy' && (
+                  <div className="bg-white p-8 rounded-2xl shadow-sm border border-[#F5F0EB]">
+                    <div className="flex items-center justify-center mb-6 text-[#8B7E74]">
+                      <AlertCircle size={32} />
+                      <h3 className="text-xl font-medium ml-3 tracking-widest">預約須知</h3>
+                    </div>
+                    
+                    <ul className="space-y-6 text-[#5e5650] leading-relaxed text-sm text-justify">
+                      <li className="flex items-start">
+                        <span className="text-[#D4C4B7] font-bold mr-3 mt-0.5">01.</span>
+                        <span>新客首次預約皆收定金，當天消費折抵扣除。24小時內匯款完成才算預約完成，取消皆不退定金。</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-[#D4C4B7] font-bold mr-3 mt-0.5">02.</span>
+                        <span>舊客取消預約，下次預約則會收取定金。</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-[#D4C4B7] font-bold mr-3 mt-0.5">03.</span>
+                        <span>預約時間保留15分鐘，超過時間者視情況減少項目或改期，聯繫不到者直接取消，每次預約皆收取定金。</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-[#D4C4B7] font-bold mr-3 mt-0.5">04.</span>
+                        <span>因環境關係，不可攜帶幼童、寵物。攜伴需先告知，以不攜伴為佳。</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-[#D4C4B7] font-bold mr-3 mt-0.5">05.</span>
+                        <span>美甲造型款式無法做到一模一樣，完美主義者請三思後再進行預約。</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-[#D4C4B7] font-bold mr-3 mt-0.5">06.</span>
+                        <span>本店付款方式支援：<span className="font-bold border-b border-[#D4C4B7]">現金、轉帳</span>。</span>
+                      </li>
+                    </ul>
+                  </div>
+                )}
+
+                {/* === TAB: ADDRESS & LINKS === */}
+                {activeTab === 'address' && (
+                  <div className="space-y-6">
+                    
+                    {/* Address Card (Now Clickable) */}
+                    <AddressCardLink />
+
+                    {/* Link Buttons */}
+                    <ExternalLinkButton 
+                      href="https://lin.ee/JH91UP1"
+                      icon={MessageCircle}
+                      mainText="Line 官方帳號"
+                      subText="ID: @273jnapy (點擊預約)"
+                      colorClass="bg-[#06C755] text-white" 
+                    />
+
+                    <ExternalLinkButton 
+                      href="https://www.instagram.com/miyu_.art?igsh=MXNmZ3NqeWk1ZWsxZw%3D%3D&utm_source=qr"
+                      icon={Instagram}
+                      mainText="Instagram"
+                      subText="作品集 / 最新動態"
+                      colorClass="bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] text-white" 
+                    />
+
+                  </div>
+                )}
+
+              </main>
+
+              {/* Footer / Bottom Spacer for UX */}
+              <footer className="mt-12 text-center pb-8">
+                <p className="text-[#D4C4B7] text-xs font-light tracking-widest">
+                  © MIYU AESTHETICS
+                </p>
+              </footer>
+            </div>
+          );
+        }
+
+        // 渲染應用程式
+        const container = document.getElementById('root');
+        const root = ReactDOM.createRoot(container);
+        root.render(<App />);
+    </script>
+</body>
+</html>
+
